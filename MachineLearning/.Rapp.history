@@ -1,0 +1,63 @@
+library(GEOquery)
+?getGEOSuppFiles
+?GEOQuery
+?GEOquery
+getGEOSuppFiles("GSE2034")
+getwd()
+getGSEDataTables("GSE2034")
+GSE2034_clindata=getGSEDataTables("GSE2034")[[2]]
+GSE2034_clindata
+setwd("/Users/ogriffit/Dropbox/BioStars/MachineLearning")
+write.table(GSE2034_clindata, "testset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
+GSE2034_clindata
+GSE2034_clindata[1:286,]
+GSE2034_clindata[1:287,]
+GSE2034_clindata[1:286,]
+GSE2034_clindata=getGSEDataTables("GSE2034")[[2]][1:286,]
+write.table(GSE2034_clindata, "testset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
+library(GEOquery)#
+library(affy)#
+library(gcrma)#
+library(hgu133ahsentrezgcdf) #cdfname="HGU133A_HS_ENTREZG"#
+library(hgu133ahsentrezgprobe)#
+library(hgu133ahsentrezg.db)
+setwd("/Users/ogriffit/temp")
+getGEOSuppFiles("GSE2990")
+setwd("/Users/ogriffit/temp/GSE2990")#
+untar("GSE2990_RAW.tar", exdir="data")
+cels = list.files("data/", pattern = "CEL")
+sapply(paste("data", cels, sep="/"), gunzip)
+cels
+cels = list.files("data/", pattern = "cel")
+cels
+sapply(paste("data", cels, sep="/"), gunzip)
+cels = list.files("data/", pattern = "CEL")
+Create AffyBatch object#
+setwd("/Users/ogriffit/temp/GSE2990/data")#
+raw.data=ReadAffy(verbose=TRUE, filenames=cels, cdfname="HGU133A_HS_ENTREZG")
+Perform GCRMA normalization#
+data.gcrma.norm=gcrma(raw.data)
+gcrma=exprs(data.gcrma.norm)
+gcrma[1:3,1:3]
+raw.data
+gcrma[1:10,1:10]
+data.gcrma.norm
+rownames(gcrma)
+gcrma=gcrma[1:12030,]
+probes=row.names(gcrma)
+symbol = unlist(mget(probes, hgu133ahsentrezgSYMBOL))
+symbol
+ID = unlist(mget(probes, hgu133ahsentrezgENTREZID))
+ID
+gcrma=cbind(probes,ID,symbol,gcrma)
+Write RMA-normalized, mapped data to file#
+setwd("/Users/ogriffit/Dropbox/BioStars/MachineLearning")
+write.table(gcrma, file = "testset_gcrma.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
+GSE2990_clindata=read.table("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE2nnn/GSE2990/suppl/GSE2990_suppl_info.txt", header=TRUE)
+GSE2990_clindata
+setwd("/Users/ogriffit/Dropbox/BioStars/MachineLearning")#
+write.table(gcrma, file = "trainset_gcrma.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)#
+#
+#Get clinical details for this dataset#
+GSE2990_clindata=read.table("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE2nnn/GSE2990/suppl/GSE2990_suppl_info.txt", header=TRUE) #
+write.table(GSE2990_clindata, "trainset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
