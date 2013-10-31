@@ -62,8 +62,8 @@ gcrma=cbind(probes,ID,symbol,gcrma)
 
 #Write GCRMA-normalized, mapped data to file
 setwd(outdir)
-write.table(gcrma, file = "trainset_gcrma.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
+write.table(gcrma, file = "testset_gcrma.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
 
 #Get clinical details for this dataset
 GSE2990_clindata=read.table("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE2nnn/GSE2990/suppl/GSE2990_suppl_info.txt", header=TRUE) 
-write.table(GSE2990_clindata, "trainset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
+write.table(GSE2990_clindata, "testset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
