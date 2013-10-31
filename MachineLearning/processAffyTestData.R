@@ -1,3 +1,7 @@
+#Set some data directories
+tempdir="/Users/ogriffit/temp/"
+outdir="/Users/ogriffit/Dropbox/BioStars/MachineLearning"
+
 #install the core bioconductor packages, if not already installed
 source("http://bioconductor.org/biocLite.R")
 biocLite()
@@ -27,16 +31,16 @@ library(hgu133ahsentrezgprobe)
 library(hgu133ahsentrezg.db)
 
 # Set a data directory, download a GEO dataset, unpack and gunzip, and create a list of files for processing 
-setwd("/Users/ogriffit/temp")
-getGEOSuppFiles("GSE2034")
-setwd("/Users/ogriffit/temp/GSE2034")
-untar("GSE2034_RAW.tar", exdir="data")
-cels = list.files("data/", pattern = "CEL")
+setwd(tempdir)
+getGEOSuppFiles("GSE2990")
+setwd(paste(tempdir,"GSE2990", sep=""))
+untar("GSE2990_RAW.tar", exdir="data")
+cels = list.files("data/", pattern = "cel")
 sapply(paste("data", cels, sep="/"), gunzip)
-cels = list.files("data/", pattern = "CEL")
+cels = list.files("data/", pattern = "cel")
 
 # Create AffyBatch object
-setwd("/Users/ogriffit/temp/GSE2034/data")
+setwd(paste(tempdir,"GSE2990/data", sep=""))
 raw.data=ReadAffy(verbose=TRUE, filenames=cels, cdfname="HGU133A_HS_ENTREZG") 
 
 # Perform GCRMA normalization
@@ -56,10 +60,10 @@ ID = unlist(mget(probes, hgu133ahsentrezgENTREZID))
 #Combine gene annotations with raw data
 gcrma=cbind(probes,ID,symbol,gcrma)
 
-#Write RMA-normalized, mapped data to file
-setwd("/Users/ogriffit/Dropbox/BioStars/MachineLearning")
-write.table(gcrma, file = "testset_gcrma.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
+#Write GCRMA-normalized, mapped data to file
+setwd(outdir)
+write.table(gcrma, file = "trainset_gcrma.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
 
 #Get clinical details for this dataset
-GSE2034_clindata=getGSEDataTables("GSE2034")[[2]][1:286,]
-write.table(GSE2034_clindata, "testset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
+GSE2990_clindata=read.table("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE2nnn/GSE2990/suppl/GSE2990_suppl_info.txt", header=TRUE) 
+write.table(GSE2990_clindata, "trainset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
