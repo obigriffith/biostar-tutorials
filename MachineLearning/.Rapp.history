@@ -1,271 +1,0 @@
-library(GEOquery)
-?getGEOSuppFiles
-?GEOQuery
-?GEOquery
-getGEOSuppFiles("GSE2034")
-getwd()
-getGSEDataTables("GSE2034")
-GSE2034_clindata=getGSEDataTables("GSE2034")[[2]]
-GSE2034_clindata
-setwd("/Users/ogriffit/Dropbox/BioStars/MachineLearning")
-write.table(GSE2034_clindata, "testset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
-GSE2034_clindata
-GSE2034_clindata[1:286,]
-GSE2034_clindata[1:287,]
-GSE2034_clindata[1:286,]
-GSE2034_clindata=getGSEDataTables("GSE2034")[[2]][1:286,]
-write.table(GSE2034_clindata, "testset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
-library(GEOquery)#
-library(affy)#
-library(gcrma)#
-library(hgu133ahsentrezgcdf) #cdfname="HGU133A_HS_ENTREZG"#
-library(hgu133ahsentrezgprobe)#
-library(hgu133ahsentrezg.db)
-setwd("/Users/ogriffit/temp")
-getGEOSuppFiles("GSE2990")
-setwd("/Users/ogriffit/temp/GSE2990")#
-untar("GSE2990_RAW.tar", exdir="data")
-cels = list.files("data/", pattern = "CEL")
-sapply(paste("data", cels, sep="/"), gunzip)
-cels
-cels = list.files("data/", pattern = "cel")
-cels
-sapply(paste("data", cels, sep="/"), gunzip)
-cels = list.files("data/", pattern = "CEL")
-Create AffyBatch object#
-setwd("/Users/ogriffit/temp/GSE2990/data")#
-raw.data=ReadAffy(verbose=TRUE, filenames=cels, cdfname="HGU133A_HS_ENTREZG")
-Perform GCRMA normalization#
-data.gcrma.norm=gcrma(raw.data)
-gcrma=exprs(data.gcrma.norm)
-gcrma[1:3,1:3]
-raw.data
-gcrma[1:10,1:10]
-data.gcrma.norm
-rownames(gcrma)
-gcrma=gcrma[1:12030,]
-probes=row.names(gcrma)
-symbol = unlist(mget(probes, hgu133ahsentrezgSYMBOL))
-symbol
-ID = unlist(mget(probes, hgu133ahsentrezgENTREZID))
-ID
-gcrma=cbind(probes,ID,symbol,gcrma)
-Write RMA-normalized, mapped data to file#
-setwd("/Users/ogriffit/Dropbox/BioStars/MachineLearning")
-write.table(gcrma, file = "testset_gcrma.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
-GSE2990_clindata=read.table("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE2nnn/GSE2990/suppl/GSE2990_suppl_info.txt", header=TRUE)
-GSE2990_clindata
-setwd("/Users/ogriffit/Dropbox/BioStars/MachineLearning")#
-write.table(gcrma, file = "trainset_gcrma.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)#
-#
-#Get clinical details for this dataset#
-GSE2990_clindata=read.table("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE2nnn/GSE2990/suppl/GSE2990_suppl_info.txt", header=TRUE) #
-write.table(GSE2990_clindata, "trainset_clindetails.txt", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
-?write.table
-library(randomForest)
-install.packages()
-install.packages("randomForest")
-library(randomForest)
-library(ROCR)
-install.packages("ROCR")
-library(ROCR)
-library(genefilter)
-source("http://bioconductor.org/biocLite.R")
-biocLite("genefilter")
-library(genefilter)
-Set working directory and filenames for Input/output#
-setwd("/Users/ogriffit/Dropbox/git/biostar-tutorials/MachineLearning")#
-datafile="trainset_gcrma.txt" #
-clindatafile="trainset_clindetails.txt"
-Read in data (expecting a tab-delimited file with header line and rownames)#
-data_import=read.table(datafile, header = TRUE, na.strings = "NA", sep="\t")#
-clin_data_import=read.table(clindatafile, header = TRUE, na.strings = "NA", sep="\t")
-clin_data_import
-clin_data_order=order(clin_data_import[,"GEO.asscession.number"])
-clin_data_order
-clin_data_import[,"GEO.asscession.number"]
-sort(clin_data_import[,"GEO.asscession.number"])
-clindata=clin_data_import[clin_data_order,]
-colnames(data_import)
-data_order=order(colnames(data_import)[4:length(colnames(data_import))])+3 #Order data without first three columns, then add 3 to get correct index in original file
-rawdata=data_import[,c(1:3,data_order)] #grab first three columns, and then remaining columns in order determined above
-header=colnames(rawdata)
-header
-clindata[,2]
-header[4:length(header)]
-cbind(header[4:length(header)],clindata[,2])
-cbind(header[4:length(header)],as.vector(clindata[,2]))
-X=rawdata[,4:length(header)]
-rawdata[1:3,1:6]
-rawdata[1:3,1:10]
-rawdata[1:10,1:10]
-hist(rawdata[,4])
-ffun=filterfun(pOverA(p = 0.2, A = 100), cv(a = 0.7, b = 10))#
-filt=genefilter(2^X,ffun)#
-filt_Data=rawdata[filt,]
-predictor_data=t(filt_Data[,4:length(header)]) #Filtered
-predictor_names=paste(filt_Data[,3]," (",filt_Data[,1],")", sep="") #Filtered, gene symbol + probe ids
-predictor_names
-filt_Data[,1]
-filt_Data[,2]
-filt_Data[,3]
-length(filt_Data[,3])
-length(unique(filt_Data[,3]))
-length(raw_data[,3])
-length(rawdata[,3])
-length(unique(rawdata[,3]))
-predictor_names=paste(filt_Data[,3]) #gene symbol
-predictor_names
-colnames(predictor_data)=predictor_names
-predictor_data[1:10,1:10]
-clindata
-cases_10yr = !is.na(clindata[,"relapse..1.True."])
-cases_10yr
-Get target variable and specify as factor/categorical#
-target= clindata[,"relapse..1.True."]#
-target[target==0]="NoRelapse"#
-target[target==1]="Relapse"#
-target=as.factor(target)
-target= clindata[,"relapse..1.True."]#
-target[target==0]="NoRelapse"#
-target[target==1]="Relapse"
-target
-target=as.factor(target)
-target
-?randomForest
-rf_output=randomForest(x=predictor_data, y=target, importance = TRUE, ntree = 10001, proximity=TRUE)
-Save RF classifier with save()#
-save(rf_output, file="RF_model")#
-#Load saved model - this will save time if re-running and you want to skip RF run#
-load("RF_model")
-Get importance measures#
-rf_importances=importance(rf_output, scale=FALSE)
-confusion=rf_output$confusion
-confusion
-tmp = as.vector(table(target))
-tmp
-num_classes = length(tmp)
-num_classes
-min_size = tmp[order(tmp,decreasing=FALSE)[1]]
-min_size
-sampsizes = rep(min_size,num_classes)
-sampsizes
-rf_output=randomForest(x=predictor_data, y=target, importance = TRUE, ntree = 10001, proximity=TRUE, sampsize=sampsizes)
-Save RF classifier with save()#
-save(rf_output, file="RF_model")#
-#Load saved model - this will save time if re-running and you want to skip RF run#
-load("RF_model")#
-#Get importance measures#
-rf_importances=importance(rf_output, scale=FALSE)
-Determine performance statistics#
-confusion=rf_output$confusion#
-sensitivity=(confusion[2,2]/(confusion[2,2]+confusion[2,1]))*100#
-specificity=(confusion[1,1]/(confusion[1,1]+confusion[1,2]))*100#
-overall_error=rf_output$err.rate[length(rf_output$err.rate[,1]),1]*100#
-overall_accuracy=1-overall_error#
-class1_error=paste(rownames(confusion)[1]," error rate= ",confusion[1,3], sep="")#
-class2_error=paste(rownames(confusion)[2]," error rate= ",confusion[2,3], sep="")#
-overall_accuracy=100-overall_error
-confusion
-Prepare stats for output to file#
-sens_out=paste("sensitivity=",sensitivity, sep="")#
-spec_out=paste("specificity=",specificity, sep="")#
-err_out=paste("overall error rate=",overall_error,sep="")#
-acc_out=paste("overall accuracy=",overall_accuracy,sep="")#
-misclass_1=paste(confusion[1,2], rownames(confusion)[1],"misclassified as", colnames(confusion)[2], sep=" ")#
-misclass_2=paste(confusion[2,1], rownames(confusion)[2],"misclassified as", colnames(confusion)[1], sep=" ")
-acc_out
-Prepare confusion table for writing to file#
-confusion_out=confusion[1:2,1:2]#
-confusion_out=cbind(rownames(confusion_out), confusion_out)
-Print results to file#
-write.table(rf_importances[,4],file=outfile, sep="\t", quote=FALSE, col.names=FALSE)
-outfile="RFoutput.txt"
-Print results to file#
-write.table(rf_importances[,4],file=outfile, sep="\t", quote=FALSE, col.names=FALSE)#
-write("confusion table", file=outfile, append=TRUE)#
-write.table(confusion_out,file=outfile, sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE, append=TRUE)#
-write(c(sens_out,spec_out,acc_out,err_out,class1_error,class2_error,misclass_1,misclass_2), file=outfile, append=TRUE)
-Produce graph of variable importances for top 30 markers#
-pdf(file=varimp_pdffile)#
-varImpPlot(rf_output, type=2, n.var=30, scale=FALSE, main="Variable Importance (Gini) for top 30 predictors")#
-dev.off()
-varimp_pdffile="varImps.pdf"#
-MDS_pdffile="MDS.pdf"
-Produce graph of variable importances for top 30 markers#
-pdf(file=varimp_pdffile)#
-varImpPlot(rf_output, type=2, n.var=30, scale=FALSE, main="Variable Importance (Gini) for top 30 predictors")#
-dev.off()#
-#Produce MDS plot#
-pdf(file=MDS_pdffile)#
-target_labels=as.vector(target)#
-target_labels[target_labels=="NoRelapse"]="N"#
-target_labels[target_labels=="Relapse"]="R"#
-MDSplot(rf_output, target, k=2, xlab="", ylab="", pch=target_labels, palette=c("red", "blue"), main="MDS plot")#
-dev.off()
-varImpPlot(rf_output, type=2, n.var=30, scale=FALSE, main="Variable Importance (Gini) for top 30 predictors")
-MDSplot(rf_output, target, k=2, xlab="", ylab="", pch=target_labels, palette=c("red", "blue"), main="MDS plot")
-clindata
-predictor_names
-predictor_names=="ESR1"
-which(predictor_names=="ESR1")
-rawdata[1:3,1:10]
-rawdata[,3]
-which(rawdata[,3]=="ESR1")
-rawdata[2026,]
-Create ROC curve plot and calculate AUC#
-#Can use Relapse/non-relapse vote fractions as predictive variable#
-#The ROC curve will be generated by stepping up through different thresholds for calling relapse vs non-relapse#
-predictions=as.vector(rf_output$votes[,2])
-pred=prediction(predictions,target)
-ROC_pdffile="ROC.pdf"
-Create ROC curve plot and calculate AUC#
-#Can use Relapse/non-relapse vote fractions as predictive variable#
-#The ROC curve will be generated by stepping up through different thresholds for calling relapse vs non-relapse#
-predictions=as.vector(rf_output$votes[,2])#
-pred=prediction(predictions,target)#
-#First calculate the AUC value#
-perf_AUC=performance(pred,"auc")#
-AUC=perf_AUC@y.values[[1]]#
-#Then, plot the actual ROC curve#
-perf_ROC=performance(pred,"tpr","fpr")#
-pdf(file=ROC_pdffile)#
-plot(perf_ROC, main="ROC plot")#
-text(0.5,0.5,paste("AUC = ",format(AUC, digits=5, scientific=FALSE)))#
-dev.off()
-plot(perf_ROC, main="ROC plot")
-text(0.5,0.5,paste("AUC = ",format(AUC, digits=5, scientific=FALSE)))
-case_pred_outfile="CasePredictions.txt"
-Save case predictions to file:#
-case_predictions=cbind(clindata,target,rf_output$predicted,rf_output$votes)#
-write.table(case_predictions,file=case_pred_outfile, sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE)
-case_predictions
-vote_dist_pdffile="vote_dist.pdf"
-Produce back-to-back histogram of vote distributions for Relapse and NoRelapse#
-options(digits=2) #
-pdf(file=vote_dist_pdffile)#
-out <- histbackback(split(rf_output$votes[,"Relapse"], target), probability=FALSE, xlim=c(-50,50), main = 'Vote distributions for patients classified by RF', axes=TRUE, ylab="Fraction votes (Relapse)")#
-#add color#
-barplot(-out$left, col="red" , horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
-barplot(out$right, col="blue", horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
-dev.off()
-library(Hmisc)
-library("Hmisc")
-install.packages("Hmisc")
-library(Hmisc)
-Produce back-to-back histogram of vote distributions for Relapse and NoRelapse#
-options(digits=2) #
-pdf(file=vote_dist_pdffile)#
-out <- histbackback(split(rf_output$votes[,"Relapse"], target), probability=FALSE, xlim=c(-50,50), main = 'Vote distributions for patients classified by RF', axes=TRUE, ylab="Fraction votes (Relapse)")#
-#add color#
-barplot(-out$left, col="red" , horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
-barplot(out$right, col="blue", horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
-dev.off()
-barplot(-out$left, col="red" , horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
-barplot(out$right, col="blue", horiz=TRUE, space=0, add=TRUE, axes=FALSE)
-out <- histbackback(split(rf_output$votes[,"Relapse"], target), probability=FALSE, xlim=c(-50,50), main = 'Vote distributions for patients classified by RF', axes=TRUE, ylab="Fraction votes (Relapse)")
-barplot(-out$left, col="red" , horiz=TRUE, space=0, add=TRUE, axes=FALSE)
-barplot(out$right, col="blue", horiz=TRUE, space=0, add=TRUE, axes=FALSE)
-Save case predictions to file:#
-case_predictions=cbind(clindata,target,rf_output$predicted,rf_output$votes)#
-write.table(case_predictions,file=case_pred_outfile, sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE)
