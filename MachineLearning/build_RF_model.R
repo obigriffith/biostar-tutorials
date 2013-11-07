@@ -1,8 +1,7 @@
 #Install necessary packages
 #install.packages("randomForest")
-install.packages("ROCR")
-install.packages("Hmisc")
-
+#install.packages("ROCR")
+#install.packages("Hmisc")
 #source("http://bioconductor.org/biocLite.R")
 #biocLite("genefilter")
 
@@ -11,12 +10,9 @@ library(ROCR)
 library(genefilter)
 library(Hmisc)
 
-#library(mclust)
-#library(heatmap.plus)
-#library(fBasics)
-
 #Set working directory and filenames for Input/output
-setwd("/Users/nspies/Dropbox/MachineLearning")
+#setwd("/Users/nspies/Dropbox/MachineLearning")
+setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")
 
 datafile="trainset_gcrma.txt" 
 clindatafile="trainset_clindetails.txt"
@@ -40,11 +36,11 @@ rawdata=data_import[,c(1:3,data_order)] #grab first three columns, and then rema
 header=colnames(rawdata)
 
 #Convert ER status to binary
-clin_data_import$ER.Status <- as.character(clin_data_import$ER.Status)
-clin_data_import$ER.Status[clin_data_import$ER.Status == "ER+"] <- 1
-clin_data_import$ER.Status[clin_data_import$ER.Status == "ER-"] <- 0
-er_status = clin_data_import[,6] #Makes a column vector of only ER.status data
-er_status <-as.factor(er_status)
+clindata$ER.Status=as.vector(clindata$ER.Status)
+clindata$ER.Status[clindata$ER.Status == "ER+"]=1
+clindata$ER.Status[clindata$ER.Status == "ER-"]=0
+er_status = clindata[,6] #Makes a column vector of only ER.status data
+er_status=as.factor(er_status)
 
 #If there are predictor variables that are constant/invariant, consider removing them
 #Preliminary gene filtering
@@ -58,9 +54,9 @@ filt_Data=rawdata[filt,]
 
 #Get potential predictor variables
 predictor_data=t(filt_Data[,4:length(header)]) #Filtered
-predictor_data = cbind(predictor_data, as.factor(er_status)) #Append ER.Status
+predictor_data = cbind(predictor_data, as.vector(er_status)) #Append ER.Status
 #predictor_names=paste(filt_Data[,3]," (",filt_Data[,1],")", sep="") #Filtered, gene symbol + probe ids
-predictor_names=paste(filt_Data[,3]) #gene symbol
+predictor_names=c(as.vector(filt_Data[,3]),"ER_Status") #gene symbol
 colnames(predictor_data)=predictor_names
 
 #Get target variable and specify as factor/categorical
