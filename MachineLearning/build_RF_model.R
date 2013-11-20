@@ -1,9 +1,9 @@
-#Install necessary packages
-#install.packages("randomForest")
-#install.packages("ROCR")
-#install.packages("Hmisc")
-#source("http://bioconductor.org/biocLite.R")
-#biocLite("genefilter")
+Install necessary packages
+install.packages("randomForest")
+install.packages("ROCR")
+install.packages("Hmisc")
+source("http://bioconductor.org/biocLite.R")
+biocLite("genefilter")
 
 library(randomForest)
 library(ROCR)
@@ -11,8 +11,8 @@ library(genefilter)
 library(Hmisc)
 
 #Set working directory and filenames for Input/output
-#setwd("/Users/nspies/Dropbox/MachineLearning")
-setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")
+setwd("/Users/nspies/biostar-tutorials/MachineLearning")
+#setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")
 
 datafile="trainset_gcrma.txt" 
 clindatafile="trainset_clindetails.txt"
