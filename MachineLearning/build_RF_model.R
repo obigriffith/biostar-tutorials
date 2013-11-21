@@ -11,18 +11,18 @@ library(genefilter)
 library(Hmisc)
 
 #Set working directory and filenames for Input/output
-setwd("/Users/nspies/biostar-tutorials/MachineLearning")
-#setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")
+#setwd("/Users/nspies/biostar-tutorials/MachineLearning")
+setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")
 
 datafile="trainset_gcrma.txt" 
 clindatafile="trainset_clindetails.txt"
 
-outfile="RFoutput.txt"
-varimp_pdffile="varImps.pdf"
-MDS_pdffile="MDS.pdf"
-ROC_pdffile="ROC.pdf"
-case_pred_outfile="CasePredictions.txt"
-vote_dist_pdffile="vote_dist.pdf"
+outfile="trainset_RFoutput.txt"
+varimp_pdffile="trainset_varImps.pdf"
+MDS_pdffile="trainset_MDS.pdf"
+ROC_pdffile="trainset_ROC.pdf"
+case_pred_outfile="trainset_CasePredictions.txt"
+vote_dist_pdffile="trainset_vote_dist.pdf"
 
 #Read in data (expecting a tab-delimited file with header line and rownames)
 data_import=read.table(datafile, header = TRUE, na.strings = "NA", sep="\t")
@@ -35,13 +35,6 @@ data_order=order(colnames(data_import)[4:length(colnames(data_import))])+3 #Orde
 rawdata=data_import[,c(1:3,data_order)] #grab first three columns, and then remaining columns in order determined above
 header=colnames(rawdata)
 
-#Convert ER status to binary
-clindata$ER.Status=as.vector(clindata$ER.Status)
-clindata$ER.Status[clindata$ER.Status == "ER+"]=1
-clindata$ER.Status[clindata$ER.Status == "ER-"]=0
-er_status = clindata[,6] #Makes a column vector of only ER.status data
-er_status=as.factor(er_status)
-
 #If there are predictor variables that are constant/invariant, consider removing them
 #Preliminary gene filtering
 X=rawdata[,4:length(header)]
@@ -53,10 +46,8 @@ filt=genefilter(2^X,ffun)
 filt_Data=rawdata[filt,] 
 
 #Get potential predictor variables
-predictor_data=t(filt_Data[,4:length(header)]) #Filtered
-predictor_data = cbind(predictor_data, as.vector(er_status)) #Append ER.Status
-#predictor_names=paste(filt_Data[,3]," (",filt_Data[,1],")", sep="") #Filtered, gene symbol + probe ids
-predictor_names=c(as.vector(filt_Data[,3]),"ER_Status") #gene symbol
+predictor_data=as.data.frame(t(filt_Data[,4:length(header)])) #Filtered
+predictor_names=c(as.vector(filt_Data[,3])) #gene symbol
 colnames(predictor_data)=predictor_names
 
 #Get target variable and specify as factor/categorical
