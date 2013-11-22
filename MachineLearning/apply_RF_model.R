@@ -3,7 +3,8 @@ library(ROCR)
 require(Hmisc)
 
 #Set working directory and filenames for Input/output
-setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")
+#setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")
+setwd("/Users/nspies/biostar-tutorials/MachineLearning")
 RF_model_file="RF_model"
 datafile="testset_gcrma.txt" #combined (standardCDF + customCDF)
 clindatafile="testset_clindetails.txt"
