@@ -1,0 +1,14 @@
+IGHV4-34	69.3363283355221
+FAM136A	105.464530962904
+confusion table
+	Normal	Tumor
+Normal	185	58
+Tumor	117	151
+sensitivity=56.3432835820896
+specificity=76.1316872427983
+overall accuracy=65.7534246575343
+overall error rate=34.2465753424658
+Normal error rate= 0.238683127572016
+Tumor error rate= 0.436567164179104
+58 Normal misclassified as Tumor
+117 Tumor misclassified as Normal

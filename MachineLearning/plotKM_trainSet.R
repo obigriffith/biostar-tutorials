@@ -6,7 +6,6 @@ datadir="/Users/nspies/biostar-tutorials/MachineLearning/"
 
 setwd(datadir)
 case_pred_outfile="trainset_CasePredictions.txt"
-#case_pred_outfile="trainset_clindetails.txt"
 KMplotfile="KaplanMeier_TrainingSet_RFRS.pdf"
 
 #read RF results and clinical data from file

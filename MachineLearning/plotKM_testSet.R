@@ -3,10 +3,8 @@
 #Start with case predictions
 #datadir="/Users/ogriffit/Dropbox/LBNL/Projects/Cepheid/analyzing/analysis_final2/RandomForests/train_survival/unbalanced/final_100k_trees/"
 datadir="/Users/nspies/biostar-tutorials/MachineLearning/"
-
 setwd(datadir)
 case_pred_outfile="testset_CasePredictions.txt"
-#case_pred_outfile="trainset_clindetails.txt"
 KMplotfile="KaplanMeier_TestSet_RFRS.pdf"
 
 #read RF results and clinical data from file

@@ -1,0 +1,13 @@
+1	6.00000000000071
+confusion table
+	Cirrhotic	Healthy
+Cirrhotic	30	10
+Healthy	3	3
+sensitivity=50
+specificity=75
+overall accuracy=71.7391304347826
+overall error rate=28.2608695652174
+Cirrhotic error rate= 0.25
+Healthy error rate= 0.5
+10 Cirrhotic misclassified as Healthy
+3 Healthy misclassified as Cirrhotic
