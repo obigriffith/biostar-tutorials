@@ -260,3 +260,135 @@ Get potential predictor variables#
 predictor_data=as.data.frame(t(filt_Data[,4:length(header)])) #Filtered#
 predictor_names=c(as.vector(filt_Data[,3])) #gene symbol#
 colnames(predictor_data)=predictor_names
+library(randomForest)#
+library(ROCR)#
+library(genefilter)#
+library(Hmisc)#
+#Set working directory and filenames for Input/output#
+setwd("/Users/nspies/biostar-tutorials/MachineLearning")#
+#setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")#
+datafile="HCCtumor_gcrma.txt" #
+clindatafile="HCCtumor_clindetails.txt"#
+outfile="HCCtumor_RFoutput.txt"#
+varimp_pdffile="HCCtumor_varImps.pdf"#
+MDS_pdffile="HCCtumor_MDS.pdf"#
+ROC_pdffile="HCCtumor_ROC.pdf"#
+case_pred_outfile="HCCtumor_CasePredictions.txt"#
+vote_dist_pdffile="HCCtumor_vote_dist.pdf"#
+#Read in data (expecting a tab-delimited file with header line and rownames)#
+data_import=read.table(datafile, header = TRUE, na.strings = "NA", sep="\t")#
+clin_data_import=read.table(clindatafile, header = TRUE, na.strings = "NA", sep="\t")#
+#NEED TO GET CLINICAL DATA IN SAME ORDER AS GCRMA DATA#
+clin_data_order=order(clin_data_import[,"Sample.ID"])#
+clindata=clin_data_import[clin_data_order,]#
+data_order=order(colnames(data_import)[4:length(colnames(data_import))])+3 #Order data without first three columns, then add 3 to get correct index in original file#
+rawdata=data_import[,c(1:3,data_order)] #grab first three columns, and then remaining columns in order determined above#
+header=colnames(rawdata)#
+#If there are predictor variables that are constant/invariant, consider removing them#
+#Preliminary gene filtering#
+X=rawdata[,4:length(header)]#
+#Take values and un-log2 them, then filter out any genes according to following criteria (recommended in multtest/MTP documentation): #
+#At least 20% of samples should have raw intensity greater than 100 #
+#The coefficient of variation (sd/mean) is between 0.7 and 10#
+ffun=filterfun(pOverA(p = 0.2, A = 100), cv(a = 0.7, b = 10))#
+filt=genefilter(2^X,ffun)#
+filt_Data=rawdata[filt,] #
+#Get potential predictor variables#
+predictor_data=as.data.frame(t(filt_Data[,4:length(header)])) #Filtered#
+predictor_names=c(as.vector(filt_Data[,3])) #gene symbol#
+colnames(predictor_data)=predictor_names#
+#Get target variable and specify as factor/categorical#
+target= clindata[,"Tumor.status"]#
+target[target==0]="Normal"#
+target[target==1]="Tumor"#
+target=as.factor(target)#
+#Run RandomForests#
+#NOTE: use an ODD number for ntree. When the forest/ensembl is used on test data, ties are broken randomly.#
+#Having an odd number of trees avoids this issue and makes the model fully deterministic#
+#Use down-sampling to attempt to compensate for unequal class-sizes#
+tmp = as.vector(table(target))#
+num_classes = length(tmp)#
+min_size = tmp[order(tmp,decreasing=FALSE)[1]]#
+sampsizes = rep(min_size,num_classes)#
+rf_output=randomForest(x=predictor_data, y=target, importance = TRUE, ntree = 10001, proximity=TRUE, sampsize=sampsizes)
+Save RF classifier with save()#
+save(rf_output, file="RF_model")#
+#Load saved model - this will save time if re-running and you want to skip RF run#
+load("RF_model")#
+#Get importance measures#
+rf_importances=importance(rf_output, scale=FALSE)#
+#Determine performance statistics#
+confusion=rf_output$confusion#
+sensitivity=(confusion[2,2]/(confusion[2,2]+confusion[2,1]))*100#
+specificity=(confusion[1,1]/(confusion[1,1]+confusion[1,2]))*100#
+overall_error=rf_output$err.rate[length(rf_output$err.rate[,1]),1]*100#
+overall_accuracy=1-overall_error#
+class1_error=paste(rownames(confusion)[1]," error rate= ",confusion[1,3], sep="")#
+class2_error=paste(rownames(confusion)[2]," error rate= ",confusion[2,3], sep="")#
+overall_accuracy=100-overall_error#
+#Prepare stats for output to file#
+sens_out=paste("sensitivity=",sensitivity, sep="")#
+spec_out=paste("specificity=",specificity, sep="")#
+err_out=paste("overall error rate=",overall_error,sep="")#
+acc_out=paste("overall accuracy=",overall_accuracy,sep="")#
+misclass_1=paste(confusion[1,2], rownames(confusion)[1],"misclassified as", colnames(confusion)[2], sep=" ")#
+misclass_2=paste(confusion[2,1], rownames(confusion)[2],"misclassified as", colnames(confusion)[1], sep=" ")#
+#Prepare confusion table for writing to file#
+confusion_out=confusion[1:2,1:2]#
+confusion_out=cbind(rownames(confusion_out), confusion_out)#
+#Print results to file#
+write.table(rf_importances[,4],file=outfile, sep="\t", quote=FALSE, col.names=FALSE)#
+write("confusion table", file=outfile, append=TRUE)#
+write.table(confusion_out,file=outfile, sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE, append=TRUE)#
+write(c(sens_out,spec_out,acc_out,err_out,class1_error,class2_error,misclass_1,misclass_2), file=outfile, append=TRUE)#
+#Produce graph of variable importances for top 30 markers#
+pdf(file=varimp_pdffile)#
+varImpPlot(rf_output, type=2, n.var=30, scale=FALSE, main="Variable Importance (Gini) for top 30 predictors")#
+dev.off()#
+#Produce MDS plot#
+pdf(file=MDS_pdffile)#
+target_labels=as.vector(target)#
+target_labels[target_labels=="NoRelapse"]="N"#
+target_labels[target_labels=="Relapse"]="R"#
+MDSplot(rf_output, target, k=2, xlab="", ylab="", pch=target_labels, palette=c("red", "blue"), main="MDS plot")#
+dev.off()#
+#Create ROC curve plot and calculate AUC#
+#Can use Relapse/non-relapse vote fractions as predictive variable#
+#The ROC curve will be generated by stepping up through different thresholds for calling relapse vs non-relapse#
+predictions=as.vector(rf_output$votes[,2])#
+pred=prediction(predictions,target)#
+#First calculate the AUC value#
+perf_AUC=performance(pred,"auc")#
+AUC=perf_AUC@y.values[[1]]#
+#Then, plot the actual ROC curve#
+perf_ROC=performance(pred,"tpr","fpr")#
+pdf(file=ROC_pdffile)#
+plot(perf_ROC, main="ROC plot")#
+text(0.5,0.5,paste("AUC = ",format(AUC, digits=5, scientific=FALSE)))#
+dev.off()#
+#Produce back-to-back histogram of vote distributions for Relapse and NoRelapse#
+options(digits=2) #
+pdf(file=vote_dist_pdffile)#
+out <- histbackback(split(rf_output$votes[,"Relapse"], target), probability=FALSE, xlim=c(-50,50), main = 'Vote distributions for patients classified by RF', axes=TRUE, ylab="Fraction votes (Relapse)")#
+#add color#
+barplot(-out$left, col="red" , horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
+barplot(out$right, col="blue", horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
+dev.off()#
+#Save case predictions to file:#
+case_predictions=cbind(clindata,target,rf_output$predicted,rf_output$votes)#
+write.table(case_predictions,file=case_pred_outfile, sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE)
+Produce MDS plot#
+pdf(file=MDS_pdffile)#
+target_labels=as.vector(target)#
+target_labels[target_labels=="Healthy"]="H"#
+target_labels[target_labels=="Tumor"]="T"#
+MDSplot(rf_output, target, k=2, xlab="", ylab="", pch=target_labels, palette=c("red", "blue"), main="MDS plot")#
+dev.off()
+Produce back-to-back histogram of vote distributions for Relapse and NoRelapse#
+options(digits=2) #
+pdf(file=vote_dist_pdffile)#
+out <- histbackback(split(rf_output$votes[,"Tumor"], target), probability=FALSE, xlim=c(-50,50), main = 'Vote distributions for patients classified by RF', axes=TRUE, ylab="Fraction votes (Tumor)")#
+#add color#
+barplot(-out$left, col="red" , horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
+barplot(out$right, col="blue", horiz=TRUE, space=0, add=TRUE, axes=FALSE) #
+dev.off()
