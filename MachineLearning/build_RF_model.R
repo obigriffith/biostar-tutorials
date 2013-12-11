@@ -64,7 +64,7 @@ tmp = as.vector(table(target))
 num_classes = length(tmp)
 min_size = tmp[order(tmp,decreasing=FALSE)[1]]
 sampsizes = rep(min_size,num_classes)
-rf_output=randomForest(x=predictor_data, y=target, importance = TRUE, ntree = 10001, proximity=TRUE, sampsize=sampsizes)
+rf_output=randomForest(x=predictor_data, y=target, importance = TRUE, ntree = 25001, proximity=TRUE, sampsize=sampsizes)
 
 #######################################
 #Save RF classifier with save()
