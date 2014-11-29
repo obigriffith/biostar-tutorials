@@ -1,7 +1,18 @@
-setwd("/Users/ogriffit/git/biostar-tutorials/Heatmaps") #Put heatmap.3 code here
-library("gplots")
+#If not already installed
+#install.packages("gplots")
+#install.packages("devtools")
 
-#Create a fake dataset
+#Load necessary packages
+library("gplots")
+library("devtools")
+
+#Load latest version of heatmap.3 function
+source_url("https://raw.githubusercontent.com/obigriffith/biostar-tutorials/master/Heatmaps/heatmap.3.R")
+
+#Set a working directory for output files
+setwd("/Users/ogriffit/git/biostar-tutorials/Heatmaps")
+
+#Create a fake dataset for demonstration purposes
 prob_matrix=replicate(100, rnorm(20)) 
 drug_names=paste("drug",letters[1:20],sep="_")
 patient_ids=paste("patient",c(1:100),sep="_")
@@ -27,8 +38,7 @@ colnames(clab)=c("Subtype","M","N","T","HER2","PR","ER")
 mydist=function(c) {dist(c,method="euclidian")}
 myclust=function(c) {hclust(c,method="average")}
 
-#Create heatmap using custom heatmap.3 source code
-source("heatmap.3.R")
+#Create heatmap using custom heatmap.3 source code loaded above
 pdf(file="heatmap3_example.pdf")
 main_title="Drug Response Predictions"
 par(cex.main=1)
@@ -40,8 +50,7 @@ legend("topright",legend=c("Basal","LumA","LumB","Her2","Claudin","Normal","","P
 fill=c("red","blue","cyan","pink","yellow","green","white","black","white","grey","white","darkorchid","darkred","white","green","darkgreen"), border=FALSE, bty="n", y.intersp = 0.7, cex=0.7)
 dev.off()
 
-
-# example with just single column, single row
+#Example to show that it now also works with just a single column or single row
 mat <- matrix(1:100, byrow=T, nrow=10)
 column_annotation <- sample(c("red", "blue", "green"), 10, replace=T)
 column_annotation <- as.matrix(column_annotation)
