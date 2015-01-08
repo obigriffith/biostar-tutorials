@@ -1,6 +1,6 @@
 #Set some data directories
-tempdir="/Users/ogriffit/temp/"
-outdir="/Users/ogriffit/Dropbox/BioStars/MachineLearning"
+tempdir="/Users/nspies/biostar-tutorials/MachineLearning/"
+outdir="/Users/nspies/biostar-tutorials/MachineLearning/"
 
 #install the core bioconductor packages, if not already installed
 source("http://bioconductor.org/biocLite.R")
