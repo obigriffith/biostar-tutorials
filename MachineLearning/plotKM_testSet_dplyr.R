@@ -14,7 +14,7 @@ KMplotfile="KaplanMeier_TestSet_RFRS.pdf"
 print('reading data')
 clindata_plusRF=read.table(case_pred_outfile, header = TRUE, na.strings = "NA", sep="\t")
 
-#Create new risk grouping with additional groups
+#Create new risk grouping with additional groups & 10yr censored data
 clindata_plusRF = clindata_plusRF %>% 
     rename(t_rfs = time.rfs) %>%                                     # Rename time column for easy scripting
     mutate(
@@ -26,7 +26,6 @@ clindata_plusRF = clindata_plusRF %>%
 #Create survival plot and statistics
 #Calculate logrank survival statistic between groups
 #Create new dataframe with just necessary data
-#surv_data=clindata_plusRF[,c("t_rfs","e_rfs_10yrcens","RF_Group2")]
 surv_data = clindata_plusRF %>% 
     select(t_rfs, e_rfs_10yrcens, RF_Group2)
 
@@ -42,11 +41,10 @@ survpvalue = format(as.numeric(survpvalue), digits=3)
 #Using the "Score (logrank) test" pvalue from coxph with riskgroup coded as ordinal variable
 #See http://r.789695.n4.nabble.com/Trend-test-for-survival-data-td857144.html
 #recode  risk groups as 1,2,3
-print('Linear test p-value')
+print('linear test p-value')
 surv_data_lin = clindata_plusRF %>%
-    select (t_rfs, e_rfs_10yrcens, RF_Group2) %>%
-    mutate(RF_Group2 = factor(RF_Group2, levels=c('low', 'int', 'high'))) %>%
-    mutate(RF_Group2 = as.numeric(RF_Group2))
+    select (t_rfs, e_rfs_10yrcens, RF_Group2) %>%                                        # select only some columns
+    mutate(RF_Group2 = as.numeric(factor(RF_Group2, levels=c('low', 'int', 'high'))))    # convert low, int, high to 1,2,3
 
 survpvalue_linear = summary(coxph(Surv(t_rfs, e_rfs_10yrcens)~RF_Group2, data=surv_data_lin))$sctest[3]
 survpvalue_linear = format(as.numeric(survpvalue_linear), digits=3)
@@ -69,3 +67,4 @@ groups_custom=c("Low","Intermediate","High") #Reset names for consistency with m
 legend_text=c(paste(groups_custom, " ", "(", group_sizes_custom, ")", sep=""),paste("p =", survpvalue_linear, sep=" "))
 legend(x = "bottomleft", legend = legend_text, col = c(colors_custom,"white"), lty = "solid", bty="n", cex=1.2)
 dev.off()
+print(paste('plot saved at', KMplotfile))
