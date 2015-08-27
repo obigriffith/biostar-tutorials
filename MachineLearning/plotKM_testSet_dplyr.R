@@ -1,37 +1,37 @@
-#Survival Analysis - Kaplan Meier Curve
+#Survival Analysi - Kaplan Meier Curve
+
+library(dplyr)
+library(survival)
 
 #Start with case predictions
 #datadir="/Users/ogriffit/Dropbox/LBNL/Projects/Cepheid/analyzing/analysis_final2/RandomForests/train_survival/unbalanced/final_100k_trees/"
-datadir="/Users/nspies/biostar-tutorials/MachineLearning/"
-setwd(datadir)
+#datadir="/Users/nspies/biostar-tutorials/MachineLearning/"
+#setwd(datadir)
 case_pred_outfile="testset_CasePredictions.txt"
 KMplotfile="KaplanMeier_TestSet_RFRS.pdf"
 
 #read RF results and clinical data from file
+print('reading data')
 clindata_plusRF=read.table(case_pred_outfile, header = TRUE, na.strings = "NA", sep="\t")
 
 #Create new risk grouping with additional groups
-#Add column for new grouping
-quantiles=quantile(clindata_plusRF[,"Relapse"], probs=c(0.33333,0.66667))
-clindata_plusRF[,"RF_Group2"]=clindata_plusRF[,"Relapse"]
-clindata_plusRF[which(clindata_plusRF[,"Relapse"]<=quantiles[1]),"RF_Group2"]="low"
-clindata_plusRF[which(clindata_plusRF[,"Relapse"]>quantiles[1] &  clindata_plusRF[,"Relapse"]<=quantiles[2]),"RF_Group2"]="int"
-clindata_plusRF[which(clindata_plusRF[,"Relapse"]>quantiles[2]),"RF_Group2"]="high"
-
-#Rename time column for easy scripting
-clindata_plusRF[,"t_rfs"]=clindata_plusRF[,"time.rfs"]
-
-#Add column of 10yr censored data
-clindata_plusRF[,"e_rfs_10yrcens"]=clindata_plusRF[,"event.rfs"]
-clindata_plusRF[which(clindata_plusRF[,"t_rfs"]>10),"e_rfs_10yrcens"]=0
+clindata_plusRF = clindata_plusRF %>% 
+    rename(t_rfs = time.rfs) %>%                                     # Rename time column for easy scripting
+    mutate(
+        RF_Group2 = c('low', 'int', 'high')[ntile(Relapse, 3)],      # Add column for new grouping
+        e_rfs_10yrcens = ifelse (t_rfs>10, 0, event.rfs)             # Add column of 10yr censored data
+        ) 
 
 #First, perform survival analysis for entire patient cohort without down-sampling
 #Create survival plot and statistics
 #Calculate logrank survival statistic between groups
 #Create new dataframe with just necessary data
-surv_data=clindata_plusRF[,c("t_rfs","e_rfs_10yrcens","RF_Group2")]
+#surv_data=clindata_plusRF[,c("t_rfs","e_rfs_10yrcens","RF_Group2")]
+surv_data = clindata_plusRF %>% 
+    select(t_rfs, e_rfs_10yrcens, RF_Group2)
 
 #create a survival object using data
+print('calculating survival')
 surv_data.surv = with(surv_data, Surv(t_rfs, e_rfs_10yrcens==1))
 #Calculate p-value
 survdifftest=survdiff(surv_data.surv ~ RF_Group2, data = surv_data)
@@ -42,16 +42,17 @@ survpvalue = format(as.numeric(survpvalue), digits=3)
 #Using the "Score (logrank) test" pvalue from coxph with riskgroup coded as ordinal variable
 #See http://r.789695.n4.nabble.com/Trend-test-for-survival-data-td857144.html
 #recode  risk groups as 1,2,3
-surv_data_lin=clindata_plusRF[,c("t_rfs","e_rfs_10yrcens","RF_Group2")]
-surv_data_lin[,"RF_Group2"]=as.vector(surv_data_lin[,"RF_Group2"])
-surv_data_lin[which(surv_data_lin[,"RF_Group2"]=="low"),"RF_Group2"]=1
-surv_data_lin[which(surv_data_lin[,"RF_Group2"]=="int"),"RF_Group2"]=2
-surv_data_lin[which(surv_data_lin[,"RF_Group2"]=="high"),"RF_Group2"]=3
-surv_data_lin[,"RF_Group2"]=as.numeric(surv_data_lin[,"RF_Group2"])
-survpvalue_linear=summary(coxph(Surv(t_rfs, e_rfs_10yrcens)~RF_Group2, data=surv_data_lin))$sctest[3]
+print('Linear test p-value')
+surv_data_lin = clindata_plusRF %>%
+    select (t_rfs, e_rfs_10yrcens, RF_Group2) %>%
+    mutate(RF_Group2 = factor(RF_Group2, levels=c('low', 'int', 'high'))) %>%
+    mutate(RF_Group2 = as.numeric(RF_Group2))
+
+survpvalue_linear = summary(coxph(Surv(t_rfs, e_rfs_10yrcens)~RF_Group2, data=surv_data_lin))$sctest[3]
 survpvalue_linear = format(as.numeric(survpvalue_linear), digits=3)
 
 ##Plot KM curve
+print('plotting KM curve')
 krfit.by_RFgroup = survfit(surv_data.surv ~ RF_Group2, data = surv_data)
 pdf(file=KMplotfile)
 colors = rainbow(5)
