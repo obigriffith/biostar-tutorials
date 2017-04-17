@@ -51,7 +51,8 @@ gcrma=exprs(data.gcrma.norm)
 
 # Remove Affy control probes - in this custom CDF, these are found in rows 12031 to 12098
 # Check for yourself and look for probenames starting with "AFFX"
-gcrma=gcrma[1:12030,] 
+#gcrma=gcrma[1:12030,] 
+gcrma=gcrma[which(!grepl("AFFX", rownames(gcrma))),]
 
 probes=row.names(gcrma)
 symbol = unlist(mget(probes, hgu133ahsentrezgSYMBOL))
