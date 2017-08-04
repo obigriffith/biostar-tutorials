@@ -27,6 +27,8 @@ heatmap.3 <- function(x,
                       margins = c(5,5),
                       ColSideColors,
                       RowSideColors,
+                      RowSideCexAxis = 1,
+                      ColSideCexAxis = 1,
                       side.height.fraction=0.3,
                       cexRow = 0.2 + 1/log10(nr),
                       cexCol = 0.2 + 1/log10(nc),
@@ -278,7 +280,7 @@ heatmap.3 <- function(x,
             rsc = matrix(as.numeric(rsc), nrow = dim(rsc)[1])
             image(t(rsc), col = as.vector(rsc.colors), axes = FALSE)
             if (length(rownames(RowSideColors)) > 0) {
-                axis(1, 0:(dim(rsc)[2] - 1)/max(1,(dim(rsc)[2] - 1)), rownames(RowSideColors), las = 2, tick = FALSE)
+                axis(1, 0:(dim(rsc)[2] - 1)/max(1,(dim(rsc)[2] - 1)), rownames(RowSideColors), las = 2, tick = FALSE, cex.axis = RowSideCexAxis)
             }
         }
     }
@@ -302,7 +304,7 @@ heatmap.3 <- function(x,
             csc = matrix(as.numeric(csc), nrow = dim(csc)[1])
             image(csc, col = as.vector(csc.colors), axes = FALSE)
             if (length(colnames(ColSideColors)) > 0) {
-                axis(2, 0:(dim(csc)[2] - 1)/max(1,(dim(csc)[2] - 1)), colnames(ColSideColors), las = 2, tick = FALSE)
+                axis(2, 0:(dim(csc)[2] - 1)/max(1,(dim(csc)[2] - 1)), colnames(ColSideColors), las = 2, tick = FALSE, cex.axis = ColSideCexAxis)
             }
         }
     }
