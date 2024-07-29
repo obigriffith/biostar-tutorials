@@ -1,26 +1,33 @@
 #Set some data directories
-tempdir="/Users/ogriffit/temp/"
-outdir="/Users/ogriffit/Dropbox/BioStars/MachineLearning"
+tempdir="/Users/obigriffith/temp"
+outdir="/Users/obigriffith/git/biostar-tutorials/MachineLearning"
 
 #install the core bioconductor packages, if not already installed
-source("http://bioconductor.org/biocLite.R")
-biocLite()
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install(version = "3.19")
 
 # install additional bioconductor libraries, if not already installed
-biocLite("GEOquery")
-biocLite("affy")
-biocLite("gcrma")
-biocLite("org.Hs.eg.db")
+BiocManager::install("GEOquery")
+BiocManager::install("affy")
+BiocManager::install("gcrma")
+BiocManager::install("org.Hs.eg.db")
 
 # Install custom CDF packages
-biocLite("hgu133ahsentrezgcdf")
-biocLite("hgu133ahsentrezgprobe")
-biocLite("hgu133ahsentrezg.db")
-# Note, if the above do not install successfully with the biocLite method:
-# Obtain current source files from:
+#BiocManager::install("hgu133ahsentrezgcdf")
+#BiocManager::install("hgu133ahsentrezgprobe")
+#BiocManager::install("hgu133ahsentrezg.db")
+
+# Note, if the above do not install successfully you can alternately obtain current source files from:
 # http://brainarray.mbni.med.umich.edu/Brainarray/Database/CustomCDF/CDF_download.asp
-# Go to latest version, choose link to ENTREZG for appropriate version of R, find HGU95A row and download three source packages ('C', 'P' and 'A')
-# In a terminal, run R CMD INSTALL <pckgfilename> where , <pckgfilename> is the name of the package file you downloaded
+# Go to latest version, choose link to ENTREZG for appropriate version of R, find HGU133A row and copy download urls for three source packages ('C', 'P' and 'A')
+# In a terminal, wget the urls and then run R CMD INSTALL <pckgfilename> where , <pckgfilename> is the name of the package file you downloaded
+# wget http://mbni.org/customcdf/25.0.0/entrezg.download/hgu133ahsentrezgcdf_25.0.0.tar.gz
+# wget http://mbni.org/customcdf/25.0.0/entrezg.download/hgu133ahsentrezgprobe_25.0.0.tar.gz
+# wget http://mbni.org/customcdf/25.0.0/entrezg.download/hgu133ahsentrezg.db_25.0.0.tar.gz
+# R CMD INSTALL hgu133ahsentrezgcdf_25.0.0.tar.gz 
+# R CMD INSTALL hgu133ahsentrezgprobe_25.0.0.tar.gz
+# R CMD INSTALL hgu133ahsentrezg.db_25.0.0.tar.gz
 
 # Load all necessary libraries
 library(GEOquery)
@@ -33,14 +40,14 @@ library(hgu133ahsentrezg.db)
 # Set a data directory, download a GEO dataset, unpack and gunzip, and create a list of files for processing 
 setwd(tempdir)
 getGEOSuppFiles("GSE2034")
-setwd(paste(tempdir,"GSE2034", sep=""))
+setwd(paste(tempdir,"GSE2034", sep="/"))
 untar("GSE2034_RAW.tar", exdir="data")
 cels = list.files("data/", pattern = "CEL")
 sapply(paste("data", cels, sep="/"), gunzip)
 cels = list.files("data/", pattern = "CEL")
 
 # Create AffyBatch object
-setwd(paste(tempdir,"GSE2034/data", sep=""))
+setwd(paste(tempdir,"GSE2034/data", sep="/"))
 raw.data=ReadAffy(verbose=TRUE, filenames=cels, cdfname="HGU133A_HS_ENTREZG") 
 
 # Perform GCRMA normalization
@@ -49,9 +56,7 @@ data.gcrma.norm=gcrma(raw.data)
 # Extract expression values
 gcrma=exprs(data.gcrma.norm)
 
-# Remove Affy control probes - in this custom CDF, these are found in rows 12031 to 12098
-# Check for yourself and look for probenames starting with "AFFX"
-#gcrma=gcrma[1:12030,] 
+# Remove Affy control probes - look for probenames starting with "AFFX"
 gcrma=gcrma[which(!grepl("AFFX", rownames(gcrma))),]
 
 probes=row.names(gcrma)
