@@ -2,8 +2,14 @@
 install.packages("randomForest")
 install.packages("ROCR")
 install.packages("Hmisc")
-source("http://bioconductor.org/biocLite.R")
-biocLite("genefilter")
+
+#install the core bioconductor packages, if not already installed
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install(version = "3.19")
+
+# install additional bioconductor libraries, if not already installed
+BiocManager::install("genefilter")
 
 library(randomForest)
 library(ROCR)
@@ -11,12 +17,10 @@ library(genefilter)
 library(Hmisc)
 
 #Set working directory and filenames for Input/output
-setwd("/Users/nspies/biostar-tutorials/MachineLearning")
-#setwd("/Users/ogriffit/git/biostar-tutorials/MachineLearning")
+setwd("/Users/obigriffith/git/biostar-tutorials/MachineLearning")
 
 datafile="trainset_gcrma.txt" 
 clindatafile="trainset_clindetails.txt"
-
 outfile="trainset_RFoutput.txt"
 varimp_pdffile="trainset_varImps.pdf"
 MDS_pdffile="trainset_MDS.pdf"
@@ -34,6 +38,7 @@ clindata=clin_data_import[clin_data_order,]
 data_order=order(colnames(data_import)[4:length(colnames(data_import))])+3 #Order data without first three columns, then add 3 to get correct index in original file
 rawdata=data_import[,c(1:3,data_order)] #grab first three columns, and then remaining columns in order determined above
 header=colnames(rawdata)
+rawdata=rawdata[which(!is.na(rawdata[,3])),] #Remove rows with missing gene symbol
 
 #If there are predictor variables that are constant/invariant, consider removing them
 #Preliminary gene filtering
@@ -51,7 +56,7 @@ predictor_names=c(as.vector(filt_Data[,3])) #gene symbol
 colnames(predictor_data)=predictor_names
 
 #Get target variable and specify as factor/categorical
-target= clindata[,"relapse..1.True."]
+target=clindata[,"relapse..1.True."]
 target[target==0]="NoRelapse"
 target[target==1]="Relapse"
 target=as.factor(target)
@@ -64,8 +69,8 @@ tmp = as.vector(table(target))
 num_classes = length(tmp)
 min_size = tmp[order(tmp,decreasing=FALSE)[1]]
 sampsizes = rep(min_size,num_classes)
-rf_output=randomForest(x=predictor_data, y=target, importance = TRUE, ntree = 25001, proximity=TRUE, sampsize=sampsizes)
-
+rf_output=randomForest(x=predictor_data, y=target, importance = TRUE, ntree = 10001, proximity=TRUE, sampsize=sampsizes, na.action = na.omit)
+                       
 #######################################
 #Save RF classifier with save()
 save(rf_output, file="RF_model")
