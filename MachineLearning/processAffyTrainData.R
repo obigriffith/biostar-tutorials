@@ -2,12 +2,10 @@
 tempdir="/Users/obigriffith/temp"
 outdir="/Users/obigriffith/git/biostar-tutorials/MachineLearning"
 
-#install the core bioconductor packages, if not already installed
+#install the necessary bioconductor packages, if not already installed
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install(version = "3.19")
-
-# install additional bioconductor libraries, if not already installed
 BiocManager::install("GEOquery")
 BiocManager::install("affy")
 BiocManager::install("gcrma")
