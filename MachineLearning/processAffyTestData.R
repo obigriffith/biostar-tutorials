@@ -39,6 +39,8 @@ library(hgu133ahsentrezg.db)
 
 # Set a data directory, download a GEO dataset, unpack and gunzip, and create a list of files for processing 
 setwd(tempdir)
+options(timeout = max(600, getOption("timeout")))
+options(download.file.method.GEOquery = "wget")
 getGEOSuppFiles("GSE2990")
 setwd(paste(tempdir,"GSE2990", sep="/"))
 untar("GSE2990_RAW.tar", exdir="data")
