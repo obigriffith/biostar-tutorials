@@ -1,8 +1,13 @@
 #Survival Analysis - Kaplan Meier Curve
 
+#Install required libraries if necessary
+install.packages("survival")
+
+#Load required libraries
+library(survival)
+
 #Start with case predictions
-#datadir="/Users/ogriffit/Dropbox/LBNL/Projects/Cepheid/analyzing/analysis_final2/RandomForests/train_survival/unbalanced/final_100k_trees/"
-datadir="/Users/nspies/biostar-tutorials/MachineLearning/"
+datadir="/Users/obigriffith/git/biostar-tutorials/MachineLearning"
 setwd(datadir)
 case_pred_outfile="testset_CasePredictions.txt"
 KMplotfile="KaplanMeier_TestSet_RFRS.pdf"
@@ -58,6 +63,7 @@ colors = rainbow(5)
 title="Survival by RFRS - Test Set"
 plot(krfit.by_RFgroup, col = colors, xlab = "Time (Years)", ylab = "Relapse Free Survival", main=title, cex.axis=1.3, cex.lab=1.4)
 abline(v = 10, col = "black", lty = 3)
+
 #Set order of categories, categories are by default assigned colors alphabetically by survfit
 groups=sort(unique(surv_data[,"RF_Group2"])) #returns unique factor levels sorted alphabetically
 names(colors)=groups
