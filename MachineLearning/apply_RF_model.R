@@ -30,11 +30,20 @@ header=colnames(rawdata)
 
 #Get predictor variables
 predictor_data=t(rawdata[,4:length(header)])
-predictor_names=as.vector((rawdata[,3])) #gene symbol + probe ids
+predictor_names=as.vector((rawdata[,3]))
 colnames(predictor_data)=predictor_names
 
 #Load RandomForests classifier from file (object "rf_output" which was saved previously)
 load(file=RF_model_file)
+
+#Extract predictor (gene) names from RF model built in the previous tutorial and subset the test data to just these predictors.
+#This is not strictly necessary as the randomForest predict function would automatically restrict itself to these variables. 
+#It has been added for clarity.
+
+```r
+RF_predictor_names=rownames(rf_output$importance)
+predictor_data=predictor_data[,RF_predictor_names]
+```
 
 #Run test data through forest
 RF_predictions_responses=predict(rf_output, predictor_data, type="response")
@@ -78,12 +87,17 @@ target=clindata_plusRF[,"event.rfs"]
 target[target==1]="Relapse"
 target[target==0]="NoRelapse"
 relapse_scores=clindata_plusRF[,"Relapse"]
-pred=prediction(relapse_scores,target)
 
 #First calculate the AUC value
+pred=prediction(relapse_scores,target)
 perf_AUC=performance(pred,"auc")
 AUC=perf_AUC@y.values[[1]]
 AUC_out=paste("AUC=",AUC,sep="")
+
+#Print results to file
+write("confusion table", file=outfile)
+write.table(confusion_out,file=outfile, sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE, append=TRUE)
+write(c(sens_out,spec_out,acc_out,err_out,misclass_1,misclass_2,AUC_out), file=outfile, append=TRUE)
 
 #Then, plot the actual ROC curve
 perf_ROC=performance(pred,"tpr","fpr")
@@ -91,8 +105,3 @@ pdf(file=ROC_pdffile)
 plot(perf_ROC, main="ROC plot")
 text(0.5,0.5,paste("AUC = ",format(AUC, digits=5, scientific=FALSE)))
 dev.off()
-
-#Print results to file
-write("confusion table", file=outfile)
-write.table(confusion_out,file=outfile, sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE, append=TRUE)
-write(c(sens_out,spec_out,acc_out,err_out,misclass_1,misclass_2,AUC_out), file=outfile, append=TRUE)
