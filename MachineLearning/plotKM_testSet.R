@@ -38,21 +38,16 @@ surv_data=clindata_plusRF[,c("t_rfs","e_rfs_10yrcens","RF_Group2")]
 
 #create a survival object using data
 surv_data.surv = with(surv_data, Surv(t_rfs, e_rfs_10yrcens==1))
-#Calculate p-value
+
+#Calculate a p-value across the three groups
 survdifftest=survdiff(surv_data.surv ~ RF_Group2, data = surv_data)
 survpvalue = 1 - pchisq(survdifftest$chisq, length(survdifftest$n) - 1)
 survpvalue = format(as.numeric(survpvalue), digits=3)
 
 #Linear test p-value 
-#Using the "Score (logrank) test" pvalue from coxph with riskgroup coded as ordinal variable
-#See http://r.789695.n4.nabble.com/Trend-test-for-survival-data-td857144.html
-#recode  risk groups as 1,2,3
+#Use the "Score (logrank) test" pvalue from coxph with riskgroup coded as ordinal variable
 surv_data_lin=clindata_plusRF[,c("t_rfs","e_rfs_10yrcens","RF_Group2")]
-surv_data_lin[,"RF_Group2"]=as.vector(surv_data_lin[,"RF_Group2"])
-surv_data_lin[which(surv_data_lin[,"RF_Group2"]=="low"),"RF_Group2"]=1
-surv_data_lin[which(surv_data_lin[,"RF_Group2"]=="int"),"RF_Group2"]=2
-surv_data_lin[which(surv_data_lin[,"RF_Group2"]=="high"),"RF_Group2"]=3
-surv_data_lin[,"RF_Group2"]=as.numeric(surv_data_lin[,"RF_Group2"])
+surv_data_lin[,"RF_Group2"]=factor(surv_data_lin[,"RF_Group2"],ordered = TRUE,levels=c("low","int","high"))
 survpvalue_linear=summary(coxph(Surv(t_rfs, e_rfs_10yrcens)~RF_Group2, data=surv_data_lin))$sctest[3]
 survpvalue_linear = format(as.numeric(survpvalue_linear), digits=3)
 
