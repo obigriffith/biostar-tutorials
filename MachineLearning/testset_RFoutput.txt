@@ -1,11 +1,11 @@
 confusion table
 	NoRelapse	Relapse
-NoRelapse	102	18
-Relapse	50	17
-sensitivity=25.3731343283582
-specificity=85
-overall accuracy=63.6363636363636
-overall error rate=36.3636363636364
-18 NoRelapse misclassified as Relapse
-50 Relapse misclassified as NoRelapse
-AUC=0.62363184079602
+NoRelapse	99	21
+Relapse	46	21
+sensitivity=31.3432835820896
+specificity=82.5
+overall accuracy=64.1711229946524
+overall error rate=35.8288770053476
+21 NoRelapse misclassified as Relapse
+46 Relapse misclassified as NoRelapse
+AUC=0.630659203980099
